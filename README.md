@@ -1,33 +1,250 @@
-Mini HUD
-==============
-Mini HUD is a tiny client-side mod for Minecraft. that adds the coordinates, looking angle and current speed to the screen.
-For more information and the downloads (compiled builds), see http://minecraft.curseforge.com/projects/minihud
+# MiniHUD — 迷你信息显示模组
 
-## MRQ 修复
+**版本**: 0.27.0 | **Minecraft**: 1.20.1 Fabric | **Java**: 17
 
-本分支基于上游代码进行了以下 bug 修复和性能优化：
+MiniHUD 是一个客户端 Minecraft 模组，在游戏 HUD 上叠加显示各种有用信息。同时提供超过 12 种世界覆盖层渲染器和结构边界框显示。
+
+---
+
+## 目录
+
+- [信息显示行（InfoToggle）](#信息显示行infotoggle)
+- [覆盖层渲染器（Overlay Renderers）](#覆盖层渲染器overlay-renderers)
+- [结构边界框（Structure Bounding Boxes）](#结构边界框structure-bounding-boxes)
+- [形状系统（Shape System）](#形状系统shape-system)
+- [工具提示增强](#工具提示增强)
+- [使用方法](#使用方法)
+- [编译与安装](#编译与安装)
+- [已知限制](#已知限制)
+- [MRQ 分支改进](#mrq-分支改进)
+- [与原版的区别](#与原版的区别)
+- [许可证](#许可证)
+
+---
+
+## 信息显示行（InfoToggle）
+
+所有信息行可独立开关、排序、绑定快捷键。通过 `H + C` 打开配置界面。
+
+### 玩家信息
+| 显示行 | 说明 |
+|--------|------|
+| **坐标 (COORDINATES)** | 玩家当前坐标 (x, y, z) |
+| **缩放坐标 (COORDINATES_SCALED)** | 跨维度缩放换算后的坐标 |
+| **朝向 (FACING)** | 玩家面对的方向 |
+| **俯仰角/偏航角** | 视角旋转角度 |
+| **速度 (SPEED/SPEED_AXIS/SPEED_HV)** | 移动速度（总体/分轴/水平垂直分离） |
+| **疾跑状态 (SPRINTING)** | 是否疾跑 |
+| **方块破坏速度** | 过去 100 刻的方块破坏速度 |
+
+### 世界与区块
+| 显示行 | 说明 |
+|--------|------|
+| **生物群系** | 当前生物群系名称或注册 ID |
+| **维度** | 当前维度 ID |
+| **难度** | 局部难度值 |
+| **区块坐标** | 区块坐标和区块内相对位置 |
+| **区域文件** | 所在的 `.mca` 文件名 |
+| **已加载区块数** | 客户端已加载区块统计 |
+| **史莱姆区块** | 是否在史莱姆区块中 |
+
+### 性能与网络
+| 显示行 | 说明 |
+|--------|------|
+| **FPS** | 当前帧率 |
+| **内存** | 内存使用量和百分比 |
+| **服务器 TPS** | 服务器刻速率和 MSPT（需 Carpet） |
+| **Ping** | 网络延迟 |
+| **实体数量** | 可见实体/世界实体/方块实体统计 |
+| **粒子数量** | 当前渲染的粒子数 |
+
+### 光照与时间
+| 显示行 | 说明 |
+|--------|------|
+| **光照等级** | 当前位置光照 |
+| **现实时间** | 系统时间（格式可自定义） |
+| **世界时间** | 游戏内时间（刻/格式化/模运算） |
+
+### 目标对象
+| 显示行 | 说明 |
+|--------|------|
+| **看向的方块** | 方块名、区块内位置、属性值 |
+| **看向的实体** | 实体名、生命值、注册 ID |
+| **蜜蜂数量/蜂蜜等级** | 蜂巢信息（单人） |
+| **熔炉经验** | 熔炉经验值（单人） |
+| **马匹速度/跳跃** | 当前骑乘马匹属性 |
+| **刷怪上限** | 各分类生物容量（需 Carpet） |
+
+---
+
+## 覆盖层渲染器（Overlay Renderers）
+
+### 信标范围覆盖
+自动检测所有信标，用不同颜色渲染 1–4 级影响范围。
+
+### 潮涌核心范围覆盖
+渲染潮涌核心的作用范围球体。
+
+### 生物群系边界覆盖
+每个子区块检测生物群系边界，不同群系用不同颜色渲染。支持自定义颜色映射、水平和垂直范围配置，后台异步计算。
+
+### 光照等级覆盖
+分析周围区域的可刷怪性，在可刷怪位置显示光照数字或标记：
+- **模式**: 仅数字 / 十字线 / 方块标记
+- **渲染条件**: 始终 / 安全 / 昏暗 / 可刷怪
+- **范围**: 1–64 格可调
+- 支持碰撞箱检测、水下渲染、跟随玩家朝向旋转
+
+### 方块网格覆盖
+三种模式渲染方块边缘网格：所有方块 / 非空气 / 与空气相邻。
+
+### 史莱姆区块覆盖
+基于世界种子计算史莱姆区块，可配置范围。
+
+### 随机刻区块覆盖
+标记随机刻加载区域（固定点/玩家跟随两种模式）。
+
+### 可刷怪列高度覆盖
+在每个坐标列的地表高度处标记，可视化刷怪位置。
+
+### 出生点区块覆盖
+渲染世界出生点周围的区块加载区域（三层：实体处理/懒加载/外层加载）。
+
+### 区域文件边界覆盖
+渲染 512×512 格的 `.mca` 区域文件边界。
+
+### 原版调试渲染器开关
+可单独开关原版 F3 调试渲染器（区块边界、碰撞箱、寻路、实心面等）。
+
+---
+
+## 结构边界框（Structure Bounding Boxes）
+
+共支持 **20 种结构类型**，每个结构可独立开关和配置颜色：
+
+### 主世界
+沙漠神殿、丛林神庙、沼泽小屋、村庄、掠夺者前哨站、林地府邸、海底遗迹、海底废墟、沉船、要塞、埋藏的宝藏、废弃矿井、冰屋、废弃传送门、古迹废墟
+
+### 下界
+下界要塞、堡垒遗迹、下界化石
+
+### 末地
+末地城
+
+### 数据来源
+- 单人: 直接从集成服务器世界生成器获取
+- 多人: 通过 Carpet 模组或 Servux 模组的网络数据包接收
+
+---
+
+## 形状系统（Shape System）
+
+用户创建自定义几何形状用于可视化参考：
+
+| 形状 | 说明 |
+|------|------|
+| **方块 (Box)** | 两个角点定义的长方体，可控各面可见性，支持网格辅助线 |
+| **圆形/圆环 (Circle)** | 方块位置圆形渲染，支持方向和高度的配置 |
+| **方块线 (Block Line)** | 起点到终点的方块路径，光线追踪算法 |
+| **球体 (Sphere Blocky)** | 近似方块球体，可调半径 |
+| **刷怪球体系列** | 可刷怪(24格)/可消失(32格)/消失(128格) 球体 |
+
+**渲染方式**: 完整方块 / 内侧边缘 / 外侧边缘。全部形状可 JSON 持久化，有图形化管理器和属性编辑器。
+
+---
+
+## 工具提示增强
+
+| 功能 | 说明 |
+|------|------|
+| 蜜蜂/蜂蜜提示 | 蜂巢物品显示蜜蜂数量和蜂蜜等级 |
+| 美西螈提示 | 美西螈桶显示变种名称 |
+| 潜影盒预览 | Shift 悬停预览内容，按颜色染色背景 |
+| 地图预览 | Shift 悬停预览地图 |
+
+---
+
+## 使用方法
+
+1. **按 `H + C`** 打开 MiniHUD 配置界面
+2. 在左侧列表中选择要显示的信息行，在右侧配置其参数
+3. 覆盖层渲染器通过各自的热键或配置界面开关
+4. 形状系统通过 `H + S` 打开形状管理器
+5. 按 `H` 键可临时切换所有 MiniHUD 显示
+
+---
+
+## 编译与安装
+
+```bash
+git clone https://github.com/marongqiang/minihud_MRQ.git
+cd minihud_MRQ
+./gradlew build
+# 编译产物位于 build/libs/
+```
+
+**依赖**: malilib 0.16.0+, Fabric Loader 0.14.21+, Fabric API（可选）
+
+---
+
+## 已知限制
+
+- 多人模式结构数据显示需要服务端安装 Carpet 或 Servux 模组
+- 光照等级覆盖在大范围（>32 格）时可能影响帧率
+- 生物群系边界覆盖首次计算需要 1–2 秒异步处理
+- 史莱姆区块覆盖需要正确的世界种子
+
+---
+
+## MRQ 分支改进
 
 ### 严重修复
-- **副手信标永不检测**: `OverlayRenderer.renderBeaconBoxForPlayerIfHoldingItem()` 中第二段检查错误使用 `getMainHandStack()` 改为 `getOffHandStack()`，修复副手持有信标时不显示覆盖范围
-- **潮涌核心颜色回调错误**: `KeyCallbacks` 中 `CONDUIT_RANGE_OVERLAY_COLOR` 的回调错误调用了 `OverlayRendererBeaconRange` 改为 `OverlayRendererConduitRange`
-- **结构数据并发竞态**: `DataStorage.addOrUpdateStructuresFromServer()` 添加 `synchronized(this.structures)` 保护，与渲染线程的 `getCopyOfStructureData()` 同步
-- **MobCapData.hasValidData 逻辑错误**: `checkStagingComplete()` 中 tick 窗口检查失败时不再设置 `hasValidData = true`，修复报告无效数据为有效
+| 问题 | 位置 | 修复内容 |
+|------|------|---------|
+| **副手信标永不检测** | `OverlayRenderer.java:77` | `getMainHandStack()` → `getOffHandStack()` |
+| **潮涌核心颜色回调错误** | `KeyCallbacks.java:42` | 回调目标从 `OverlayRendererBeaconRange` 修正为 `OverlayRendererConduitRange` |
+| **结构数据并发竞态** | `DataStorage.java` | `addOrUpdateStructuresFromServer` 添加 `synchronized(this.structures)` |
+| **hasValidData 逻辑错误** | `MobCapData.java` | tick 窗口检查失败时不再标记为有效数据 |
 
 ### 并发安全
-- `ShapeManager.shapes`: `ArrayList` → `CopyOnWriteArrayList`
-- `RenderContainer.renderers`: `ArrayList` → `CopyOnWriteArrayList`
+| 组件 | 修复 |
+|------|------|
+| `ShapeManager` | `ArrayList` → `CopyOnWriteArrayList` |
+| `RenderContainer` | `ArrayList` → `CopyOnWriteArrayList` |
 
 ### 性能优化
-- `RenderHandler`: `SimpleDateFormat` 缓存，避免每帧重复创建
-- `DataStorage`: `PATTERN_SEED_NUMBER` 静态 Pattern 缓存
-- 多个文件: 空 catch 块添加 `MiniHUD.logger` 日志输出
+| 组件 | 修复 |
+|------|------|
+| `RenderHandler` | `SimpleDateFormat` 缓存，避免每帧创建 |
+| `DataStorage` | `PATTERN_SEED_NUMBER` 静态编译 |
 
-### 网络兼容
-- `StructurePacketHandlerCarpet`: 协议版本不匹配时输出警告日志，不再静默丢弃
+### 其他
+- `StructurePacketHandlerCarpet`: 协议版本不匹配时输出警告
+- 多处空 catch 块添加日志输出
 
-Compiling
-=========
-* Clone the repository
-* Open a command prompt/terminal to the repository directory
-* run 'gradlew build'
-* The built jar file will be in build/libs/
+---
+
+## 与原版的区别
+
+| 方面 | 原版 | MRQ |
+|------|------|-----|
+| 副手信标 | 不检测 | ✅ 正常检测 |
+| 潮涌核心颜色 | 回调到错误的渲染器 | ✅ 正确回调 |
+| 结构数据 | 网络线程无同步 | ✅ 同步保护 |
+| MobCap 有效性 | tick 窗口外误标记 | ✅ 正确判断 |
+| 形状/渲染器列表 | 普通 ArrayList | ✅ CopyOnWriteArrayList |
+| DateFormat | 每帧 new | ✅ 缓存复用 |
+
+---
+
+## 许可证
+
+LGPL-3.0
+
+---
+
+## 相关链接
+
+- [malilib MRQ](https://github.com/marongqiang/malilib_MRQ)（必要依赖）
+- [Litematica MRQ](https://github.com/marongqiang/litematica_MRQ)
+- [Tweakeroo MRQ](https://github.com/marongqiang/tweakeroo_MRQ)
