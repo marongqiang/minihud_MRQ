@@ -1,7 +1,7 @@
 package fi.dy.masa.minihud.renderer;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import com.google.gson.JsonObject;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.joml.Matrix4f;
@@ -17,7 +17,7 @@ public class RenderContainer
 {
     public static final RenderContainer INSTANCE = new RenderContainer();
 
-    private final List<OverlayRendererBase> renderers = new ArrayList<>();
+    private final List<OverlayRendererBase> renderers = new CopyOnWriteArrayList<>();
     protected boolean resourcesAllocated;
     protected int countActive;
 

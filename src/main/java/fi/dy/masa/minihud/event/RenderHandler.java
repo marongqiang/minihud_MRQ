@@ -75,6 +75,8 @@ public class RenderHandler implements IRenderer
     private final MinecraftClient mc;
     private final DataStorage data;
     private final Date date;
+    private String cachedDateFormat;
+    private SimpleDateFormat cachedSdf;
     private final Map<ChunkPos, CompletableFuture<WorldChunk>> chunkFutures = new HashMap<>();
     private final Set<InfoToggle> addedTypes = new HashSet<>();
     @Nullable private WorldChunk cachedClientChunk;
@@ -119,7 +121,7 @@ public class RenderHandler implements IRenderer
             return;
         }
 
-        if (this.mc.getDebugHud().shouldShowDebugHud() == false &&
+        if (this.mc.options.debugEnabled == false &&
             this.mc.player != null && this.mc.options.hudHidden == false &&
             (Configs.Generic.REQUIRE_SNEAK.getBooleanValue() == false || this.mc.player.isSneaking()) &&
             Configs.Generic.REQUIRED_KEY.getKeybind().isKeybindHeld())
@@ -154,7 +156,7 @@ public class RenderHandler implements IRenderer
             if (Configs.Generic.MAP_PREVIEW.getBooleanValue() &&
                 (Configs.Generic.MAP_PREVIEW_REQUIRE_SHIFT.getBooleanValue() == false || GuiBase.isShiftDown()))
             {
-                fi.dy.masa.malilib.render.RenderUtils.renderMapPreview(stack, x, y, Configs.Generic.MAP_PREVIEW_SIZE.getIntegerValue(), false);
+                fi.dy.masa.malilib.render.RenderUtils.renderMapPreview(stack, x, y, Configs.Generic.MAP_PREVIEW_SIZE.getIntegerValue());
             }
         }
         else if (Configs.Generic.SHULKER_BOX_PREVIEW.getBooleanValue())
@@ -300,9 +302,14 @@ public class RenderHandler implements IRenderer
         {
             try
             {
-                SimpleDateFormat sdf = new SimpleDateFormat(Configs.Generic.DATE_FORMAT_REAL.getStringValue());
+                String formatStr = Configs.Generic.DATE_FORMAT_REAL.getStringValue();
+                if (this.cachedDateFormat == null || this.cachedDateFormat.equals(formatStr) == false)
+                {
+                    this.cachedSdf = new SimpleDateFormat(formatStr);
+                    this.cachedDateFormat = formatStr;
+                }
                 this.date.setTime(System.currentTimeMillis());
-                this.addLine(sdf.format(this.date));
+                this.addLine(this.cachedSdf.format(this.date));
             }
             catch (Exception e)
             {

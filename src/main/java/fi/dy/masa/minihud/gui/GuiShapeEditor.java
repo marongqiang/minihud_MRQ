@@ -37,6 +37,7 @@ import fi.dy.masa.malilib.util.LayerRange;
 import fi.dy.masa.malilib.util.PositionUtils;
 import fi.dy.masa.malilib.util.PositionUtils.CoordinateType;
 import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.minihud.MiniHUD;
 import fi.dy.masa.minihud.gui.GuiConfigs.ConfigGuiTab;
 import fi.dy.masa.minihud.renderer.shapes.ShapeBase;
 import fi.dy.masa.minihud.renderer.shapes.ShapeBlocky;
@@ -604,7 +605,7 @@ public class GuiShapeEditor extends GuiRenderLayerEditBase
                 this.consumer.accept(PositionUtils.setValue(type, this.supplier.get(), Double.parseDouble(newValue)));
                 return true;
             }
-            catch (Exception ignore) {}
+            catch (Exception ignore) { MiniHUD.logger.warn("Failed to parse numeric value in shape editor", ignore); }
 
             return false;
         }
@@ -628,7 +629,7 @@ public class GuiShapeEditor extends GuiRenderLayerEditBase
                 this.consumer.accept(PositionUtils.setValue(type, this.supplier.get(), Integer.parseInt(newValue)));
                 return true;
             }
-            catch (Exception ignore) {}
+            catch (Exception ignore) { MiniHUD.logger.warn("Failed to parse numeric value in shape editor", ignore); }
 
             return false;
         }
@@ -664,7 +665,7 @@ public class GuiShapeEditor extends GuiRenderLayerEditBase
                 this.consumer.accept(Integer.parseInt(textField.getText()));
                 return true;
             }
-            catch (Exception ignore) {}
+            catch (Exception ignore) { MiniHUD.logger.warn("Failed to parse numeric value in shape editor", ignore); }
 
             return false;
         }
@@ -680,7 +681,7 @@ public class GuiShapeEditor extends GuiRenderLayerEditBase
                 this.consumer.accept(Double.parseDouble(textField.getText()));
                 return true;
             }
-            catch (Exception ignore) {}
+            catch (Exception ignore) { MiniHUD.logger.warn("Failed to parse numeric value in shape editor", ignore); }
 
             return false;
         }

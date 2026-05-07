@@ -1,5 +1,6 @@
 package fi.dy.masa.minihud.network;
 
+import java.util.List;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
@@ -27,9 +28,9 @@ public class StructurePacketHandlerCarpet implements IPluginChannelHandler
     }
 
     @Override
-    public Identifier getChannel()
+    public List<Identifier> getChannels()
     {
-        return CHANNEL;
+        return List.of(CHANNEL);
     }
 
     @Override
@@ -53,11 +54,18 @@ public class StructurePacketHandlerCarpet implements IPluginChannelHandler
                 }
                 // Metadata packet upon channel registration
                 else if (tag.contains("Version", Constants.NBT.TAG_INT) &&
-                         tag.contains("Timeout", Constants.NBT.TAG_INT) &&
-                         tag.getInt("Version") == VERSION)
+                         tag.contains("Timeout", Constants.NBT.TAG_INT))
                 {
-                    this.timeout = tag.getInt("Timeout");
-                    this.registered = true;
+                    int version = tag.getInt("Version");
+                    if (version == VERSION)
+                    {
+                        this.timeout = tag.getInt("Timeout");
+                        this.registered = true;
+                    }
+                    else
+                    {
+                        MiniHUD.logger.warn("Carpet structure protocol version mismatch: server={}, client={}", version, VERSION);
+                    }
                 }
             }
         }

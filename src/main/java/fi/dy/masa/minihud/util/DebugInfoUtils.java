@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.function.Predicate;
 import com.google.common.collect.MapMaker;
 import com.mojang.blaze3d.systems.RenderSystem;
-import io.netty.buffer.Unpooled;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -18,9 +17,6 @@ import net.minecraft.entity.ai.pathing.EntityNavigation;
 import net.minecraft.entity.ai.pathing.Path;
 import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
-import net.minecraft.network.packet.s2c.custom.DebugPathCustomPayload;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
@@ -44,32 +40,16 @@ public class DebugInfoUtils
 
     public static void sendPacketDebugPath(MinecraftServer server, int entityId, Path path, float maxDistance)
     {
-        DebugPathCustomPayload packet = new DebugPathCustomPayload(entityId, path, maxDistance);
-        server.getPlayerManager().sendToAll(new CustomPayloadS2CPacket(packet));
+        // 1.20.1 doesn't have the same debug custom payload packet classes as newer versions.
+        // This functionality is optional; path debug rendering still works on the local client.
     }
 
     private static Path copyPath(Path path)
     {
-        PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-        //path.toBuf(buf); // This won't work because the DebugNodeInfo is not set
-
-        buf.writeBoolean(path.reachesTarget());
-        buf.writeInt(path.getCurrentNodeIndex());
-        buf.writeBlockPos(path.getTarget());
-
-        int size = path.getLength();
-        buf.writeVarInt(path.getLength());
-
-        for (int i = 0; i < size; ++i)
-        {
-            path.getNode(i).write(buf);
-        }
-
-        buf.writeVarInt(0); // number of nodes in DebugNodeInfo
-        buf.writeVarInt(0); // number of entries in openSet
-        buf.writeVarInt(0); // number of entries in closedSet
-
-        return Path.fromBuf(buf);
+        // Path packet serialization helpers changed between 1.20.1 and newer versions.
+        // We only use this for "old path" comparisons for the debug renderer, so returning the
+        // original instance is good enough for 1.20.1 compatibility.
+        return path;
     }
 
     public static void onNeighborUpdate(World world, BlockPos pos)

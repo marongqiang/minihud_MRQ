@@ -74,7 +74,7 @@ public class OverlayRenderer
             return;
         }
 
-        item = mc.player.getMainHandStack().getItem();
+        item = mc.player.getOffHandStack().getItem();
 
         if (item instanceof BlockItem && ((BlockItem) item).getBlock() == Blocks.BEACON)
         {

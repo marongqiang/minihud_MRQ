@@ -9,6 +9,7 @@
 		"IMixinBiomeAccess",
 		"IMixinChunkDeltaUpdateS2CPacket",
 		"IMixinEntityNavigation",
+		"IMixinInGameHud",
 		"IMixinServerWorld",
 		"IMixinWorld",
 		"IMixinWorldRenderer",

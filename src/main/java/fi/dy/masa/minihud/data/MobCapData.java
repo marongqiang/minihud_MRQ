@@ -122,10 +122,9 @@ public class MobCapData
             }
 
             this.clearStaging();
+            this.hasValidData = true;
+            this.completionWorldTick = worldTick;
         }
-
-        this.hasValidData = true;
-        this.completionWorldTick = worldTick;
     }
 
     /**

@@ -1,7 +1,7 @@
 package fi.dy.masa.minihud.renderer.shapes;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import javax.annotation.Nullable;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -14,7 +14,7 @@ public class ShapeManager
 {
     public static final ShapeManager INSTANCE = new ShapeManager();
 
-    private final List<ShapeBase> shapes = new ArrayList<>();
+    private final List<ShapeBase> shapes = new CopyOnWriteArrayList<>();
     @Nullable private ShapeBase selectedShape;
 
     @Nullable

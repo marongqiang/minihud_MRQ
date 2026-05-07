@@ -6,6 +6,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import fi.dy.masa.malilib.util.StringUtils;
+import fi.dy.masa.minihud.MiniHUD;
 import fi.dy.masa.minihud.config.InfoToggle;
 import fi.dy.masa.minihud.data.MobCapData.EntityCategory;
 
@@ -211,7 +212,7 @@ public class MobCapDataHandler
 
                         break;
                     }
-                    catch (NumberFormatException ignore) {}
+                    catch (NumberFormatException e) { MiniHUD.logger.warn("Failed to parse mobcap data", e); }
                 }
             }
         }

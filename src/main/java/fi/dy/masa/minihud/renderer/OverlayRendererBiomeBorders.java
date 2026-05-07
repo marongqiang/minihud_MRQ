@@ -702,7 +702,7 @@ public class OverlayRendererBiomeBorders extends OverlayRendererBase
                 }
             }
         }
-        catch (Exception ignore) {}
+        catch (Exception ignore) { MiniHUD.logger.warn("Failed to set biome color from config", ignore); }
     }
 
     private interface ColorRegistry

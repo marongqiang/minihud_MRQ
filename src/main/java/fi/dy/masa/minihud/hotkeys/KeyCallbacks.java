@@ -17,6 +17,7 @@ import fi.dy.masa.minihud.gui.GuiConfigs.ConfigGuiTab;
 import fi.dy.masa.minihud.gui.GuiShapeEditor;
 import fi.dy.masa.minihud.gui.GuiShapeManager;
 import fi.dy.masa.minihud.renderer.OverlayRendererBeaconRange;
+import fi.dy.masa.minihud.renderer.OverlayRendererConduitRange;
 import fi.dy.masa.minihud.renderer.OverlayRendererLightLevel;
 import fi.dy.masa.minihud.renderer.OverlayRendererStructures;
 import fi.dy.masa.minihud.renderer.shapes.ShapeBase;
@@ -39,7 +40,7 @@ public class KeyCallbacks
         Configs.Colors.BEACON_RANGE_LVL2_OVERLAY_COLOR.setValueChangeCallback((config) -> updateBeaconOverlay());
         Configs.Colors.BEACON_RANGE_LVL3_OVERLAY_COLOR.setValueChangeCallback((config) -> updateBeaconOverlay());
         Configs.Colors.BEACON_RANGE_LVL4_OVERLAY_COLOR.setValueChangeCallback((config) -> updateBeaconOverlay());
-        Configs.Colors.CONDUIT_RANGE_OVERLAY_COLOR.setValueChangeCallback(cfg -> OverlayRendererBeaconRange.INSTANCE.setNeedsUpdate());
+        Configs.Colors.CONDUIT_RANGE_OVERLAY_COLOR.setValueChangeCallback(cfg -> OverlayRendererConduitRange.INSTANCE.setNeedsUpdate());
 
         Configs.Generic.LIGHT_LEVEL_RANGE.setValueChangeCallback((config) -> OverlayRendererLightLevel.setNeedsUpdate());
         Configs.Generic.LIGHT_LEVEL_RENDER_THROUGH.setValueChangeCallback((config) -> OverlayRendererLightLevel.INSTANCE.setRenderThrough(config.getBooleanValue()));

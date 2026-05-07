@@ -23,7 +23,6 @@ import net.minecraft.server.ServerTask;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.structure.StructureStart;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.PlainTextContent;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableTextContent;
 import net.minecraft.util.Formatting;
@@ -61,6 +60,7 @@ public class DataStorage
 {
     private static final ThreadFactory THREAD_FACTORY = (new ThreadFactoryBuilder()).setNameFormat("MiniHUD Worker Thread %d").setDaemon(true).build();
     private static final Pattern PATTERN_CARPET_TPS = Pattern.compile("TPS: (?<tps>[0-9]+[\\.,][0-9]) MSPT: (?<mspt>[0-9]+[\\.,][0-9])");
+    private static final Pattern PATTERN_SEED_NUMBER = Pattern.compile("-?\\d+");
 
     public static final DataStorage INSTANCE = new DataStorage();
 
@@ -409,17 +409,13 @@ public class DataStorage
             {
                 try
                 {
-                    //String str = message.getString();
-                    //int i1 = str.indexOf("[");
-                    //int i2 = str.indexOf("]");
-                    MutableText m = (MutableText) text.getArgs()[0];
-                    TranslatableTextContent t = (TranslatableTextContent) m.getContent();
-                    PlainTextContent.Literal l = (PlainTextContent.Literal) ((MutableText) t.getArgs()[0]).getContent();
-                    String str = l.string();
+                    Object arg0 = text.getArgs()[0];
+                    String raw = arg0 instanceof Text t ? t.getString() : String.valueOf(arg0);
+                    Matcher matcher = PATTERN_SEED_NUMBER.matcher(raw);
 
-                    //if (i1 != -1 && i2 != -1)
+                    if (matcher.find())
                     {
-                        //this.setWorldSeed(Long.parseLong(str.substring(i1 + 1, i2)));
+                        String str = matcher.group();
                         this.setWorldSeed(Long.parseLong(str));
                         MiniHUD.logger.info("Received world seed from the vanilla /seed command: {}", this.worldSeed);
                         InfoUtils.printActionbarMessage("minihud.message.seed_set", this.worldSeed);
@@ -497,7 +493,18 @@ public class DataStorage
     {
         if (this.mc != null && this.mc.player != null && this.mc.getServer() != null)
         {
-            this.serverMSPT = MiscUtils.longAverage(this.mc.getServer().getTickTimes()) / 1000000D;
+            try
+            {
+                Object server = this.mc.getServer();
+                java.lang.reflect.Method method = server.getClass().getMethod("getTickTimes");
+                long[] times = (long[]) method.invoke(server);
+                this.serverMSPT = MiscUtils.longAverage(times) / 1000000D;
+            }
+            catch (Exception e)
+            {
+                MiniHUD.logger.warn("Failed to get server MSPT via reflection", e);
+                this.serverMSPT = 0.0D;
+            }
             this.serverTPS = this.serverMSPT <= 50 ? 20D : (1000D / this.serverMSPT);
             this.serverTPSValid = true;
         }
@@ -646,22 +653,25 @@ public class DataStorage
             long currentTime = this.mc.world.getTime();
             final int count = structures.size();
 
-            this.removeExpiredStructures(currentTime, this.structureDataTimeout);
-
-            for (int i = 0; i < count; ++i)
+            synchronized (this.structures)
             {
-                NbtCompound tag = structures.getCompound(i);
-                StructureData data = StructureData.fromStructureStartTag(tag, currentTime);
+                this.removeExpiredStructures(currentTime, this.structureDataTimeout);
 
-                if (data != null)
+                for (int i = 0; i < count; ++i)
                 {
-                    // Remove the old entry and replace it with the new entry with the current refresh time
-                    if (this.structures.containsEntry(data.getStructureType(), data))
-                    {
-                        this.structures.remove(data.getStructureType(), data);
-                    }
+                    NbtCompound tag = structures.getCompound(i);
+                    StructureData data = StructureData.fromStructureStartTag(tag, currentTime);
 
-                    this.structures.put(data.getStructureType(), data);
+                    if (data != null)
+                    {
+                        // Remove the old entry and replace it with the new entry with the current refresh time
+                        if (this.structures.containsEntry(data.getStructureType(), data))
+                        {
+                            this.structures.remove(data.getStructureType(), data);
+                        }
+
+                        this.structures.put(data.getStructureType(), data);
+                    }
                 }
             }
 
@@ -749,8 +759,9 @@ public class DataStorage
                         this.carpetServer = true;
                         return;
                     }
-                    catch (NumberFormatException ignore)
+                    catch (NumberFormatException e)
                     {
+                        MiniHUD.logger.warn("Failed to parse TPS/MSPT from chat message", e);
                     }
                 }
             }

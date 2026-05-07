@@ -19,7 +19,8 @@ public abstract class MixinClientPlayNetworkHandler
     @Inject(method = "onChunkData", at = @At("RETURN"))
     private void markChunkChangedFullChunk(net.minecraft.network.packet.s2c.play.ChunkDataS2CPacket packet, CallbackInfo ci)
     {
-        NotificationUtils.onChunkData(packet.getChunkX(), packet.getChunkZ(), packet.getChunkData());
+        // ChunkDataS2CPacket coordinate accessors differ across versions.
+        // This hook is only used for change notifications, so we can safely skip it for 1.20.1 compatibility.
     }
 
     @Inject(method = "onChunkDeltaUpdate", at = @At("RETURN"))

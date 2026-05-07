@@ -1,5 +1,6 @@
 package fi.dy.masa.minihud.network;
 
+import java.util.List;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
@@ -28,9 +29,9 @@ public class StructurePacketHandlerServux implements IPluginChannelHandler
     }
 
     @Override
-    public Identifier getChannel()
+    public List<Identifier> getChannels()
     {
-        return CHANNEL;
+        return List.of(CHANNEL);
     }
 
     @Override
